@@ -52,6 +52,8 @@ public class JettyServer {
     	for (String arg : args) {
     		if (arg.startsWith("-p")) {
     			port = Integer.parseInt(arg.substring(2));
+    		} else if (arg.startsWith("-h")) {
+    			System.out.println("usage: java org.jrack.jetty.JettyServer -p8080 org.jrack.examples.Echo");
     		} else {
     			rack = arg;
     		}

@@ -69,7 +69,7 @@ public class RackServlet extends HttpServlet {
         for (String key : response.getHeaders().keySet()) {
             resp.setHeader(key, response.getHeaders().get(key));
         }
-        resp.getWriter().print(response.getResponse());
+        resp.getOutputStream().write(response.getResponse());
     }
 
     private Map<String, Object> getEnvironment(HttpServletRequest req) throws IOException {
