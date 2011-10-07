@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jetty-6.1.21.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-util-6.1.21.jar"/>
 	<classpathentry kind="lib" path="lib/servlet-api-2.5.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-api-1.5.8.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-simple-1.5.8.jar"/>
-	<classpathentry kind="lib" path="lib/jrack-0.2.jar"/>
+	<classpathentry kind="lib" path="lib/rack4java-0.9.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

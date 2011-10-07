@@ -1,8 +1,8 @@
-package org.jrack.jetty;
+package org.rack4java.servlet;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,23 +14,22 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.jrack.JRack;
-import org.jrack.RackEnvironment;
-import org.jrack.RackResponse;
-import org.jrack.utils.ClassUtilities;
-import org.jrack.utils.LiteralMap;
+import org.rack4java.Rack;
+import org.rack4java.RackResponse;
+import org.rack4java.utils.ClassHelper;
+import org.rack4java.utils.LiteralMap;
 
 @SuppressWarnings("serial") 
 public class RackServlet extends HttpServlet {
 	private static final Map<String, Object> commonEnvironment = new LiteralMap<String, Object>(
-		    RackEnvironment.RACK_VERSION, Arrays.asList(0, 2),
-		    RackEnvironment.RACK_ERRORS, new OutputStreamWriter(System.err),
-		    RackEnvironment.RACK_MULTITHREAD, true,
-		    RackEnvironment.RACK_MULTIPROCESS, true,
-		    RackEnvironment.RACK_RUN_ONCE, false
+		    Rack.RACK_VERSION, Arrays.asList(0, 2),
+		    Rack.RACK_ERRORS, System.err,
+		    Rack.RACK_MULTITHREAD, true,
+		    Rack.RACK_MULTIPROCESS, true,
+		    Rack.RACK_RUN_ONCE, false
 		);
 	
-    private JRack rack;
+    private Rack rack;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -39,7 +38,7 @@ public class RackServlet extends HttpServlet {
         String rackClass = config.getInitParameter("rackClass");
 
         try {
-            rack = ((JRack) ClassUtilities.loadClass(rackClass).newInstance());
+            rack = ((Rack) ClassHelper.loadClass(rackClass).newInstance());
         } catch (Exception e) {
             throw new ServletException("Cannot load: " + rackClass);
         }
@@ -51,7 +50,7 @@ public class RackServlet extends HttpServlet {
     public RackServlet() {
     }
 
-    public RackServlet(JRack rack) {
+    public RackServlet(Rack rack) {
         this.rack = rack;
     }
 
@@ -69,29 +68,28 @@ public class RackServlet extends HttpServlet {
         for (String key : response.getHeaders().keySet()) {
             resp.setHeader(key, response.getHeaders().get(key));
         }
-        resp.getOutputStream().write(response.getResponse());
+        resp.getOutputStream().write(response.getBytes());
     }
 
     private Map<String, Object> getEnvironment(HttpServletRequest req) throws IOException {
         Map<String, Object> environment = new HashMap<String, Object>();
         environment.putAll(commonEnvironment);
         
-        environment.put(RackEnvironment.REQUEST_METHOD, req.getMethod());
-        environment.put(RackEnvironment.PATH_INFO, req.getPathInfo());
-        environment.put(RackEnvironment.QUERY_STRING, req.getQueryString());
-        environment.put(RackEnvironment.SERVER_NAME, req.getServerName());
-        environment.put(RackEnvironment.SERVER_PORT, req.getServerPort());
-        environment.put(RackEnvironment.SCRIPT_NAME, req.getServletPath());
-
-        environment.put(RackEnvironment.HTTP_ACCEPT_ENCODING, req.getHeader("Accept-Encoding"));
-        environment.put(RackEnvironment.HTTP_USER_AGENT, req.getHeader("User-Agent"));
-        environment.put(RackEnvironment.HTTP_HOST, req.getHeader("Host"));
-        environment.put(RackEnvironment.HTTP_CONNECTION, req.getHeader("Connection"));
-        environment.put(RackEnvironment.HTTP_ACCEPT, req.getHeader("Accept"));
-        environment.put(RackEnvironment.HTTP_ACCEPT_CHARSET, req.getHeader("Accept-Charset"));
+        environment.put(Rack.REQUEST_METHOD, req.getMethod());
+        environment.put(Rack.PATH_INFO, req.getPathInfo());
+        environment.put(Rack.QUERY_STRING, req.getQueryString());
+        environment.put(Rack.SERVER_NAME, req.getServerName());
+        environment.put(Rack.SERVER_PORT, req.getServerPort());
+        environment.put(Rack.SCRIPT_NAME, req.getServletPath());
         
-        environment.put(RackEnvironment.RACK_URL_SCHEME, req.getScheme());
-        environment.put(RackEnvironment.RACK_INPUT, req.getInputStream());
+        @SuppressWarnings("unchecked") Enumeration<String> headers = req.getHeaderNames();
+        while (headers.hasMoreElements()) {
+        	String header = headers.nextElement();
+        	environment.put(Rack.HTTP_ + header, req.getHeader(header));
+        }
+        
+        environment.put(Rack.RACK_URL_SCHEME, req.getScheme());
+        environment.put(Rack.RACK_INPUT, req.getInputStream());
         
         return environment;
     }
