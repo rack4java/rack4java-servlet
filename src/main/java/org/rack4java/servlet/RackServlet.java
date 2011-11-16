@@ -3,7 +3,6 @@ package org.rack4java.servlet;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -14,14 +13,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.rack4java.Context;
 import org.rack4java.Rack;
 import org.rack4java.RackResponse;
+import org.rack4java.context.LiteralContext;
+import org.rack4java.context.MapContext;
 import org.rack4java.utils.ClassHelper;
-import org.rack4java.utils.LiteralMap;
+import org.rack4java.utils.FallbackContext;
 
 @SuppressWarnings("serial") 
 public class RackServlet extends HttpServlet {
-	private static final Map<String, Object> commonEnvironment = new LiteralMap<String, Object>(
+	private static final Context<Object> commonEnvironment = new LiteralContext<Object>(
 		    Rack.RACK_VERSION, Arrays.asList(0, 2),
 		    Rack.RACK_ERRORS, System.err,
 		    Rack.RACK_MULTITHREAD, true,
@@ -65,15 +67,17 @@ public class RackServlet extends HttpServlet {
 
     private void writeResponse(HttpServletResponse resp, RackResponse response) throws IOException {
         resp.setStatus(response.getStatus());
-        for (String key : response.getHeaders().keySet()) {
-            resp.setHeader(key, response.getHeaders().get(key));
+        for (Map.Entry<String, String> entry : response.getHeaders()) {
+            resp.setHeader(entry.getKey(), entry.getValue());
         }
         resp.getOutputStream().write(response.getBytes());
     }
 
-    private Map<String, Object> getEnvironment(HttpServletRequest req) throws IOException {
-        Map<String, Object> environment = new HashMap<String, Object>();
-        environment.putAll(commonEnvironment);
+    private Context<Object> getEnvironment(HttpServletRequest req) throws IOException {
+    	@SuppressWarnings("unchecked") Context<Object> environment = new FallbackContext<Object>(
+    			new MapContext<Object>(),
+    			commonEnvironment
+    		);
         
         environment.put(Rack.REQUEST_METHOD, req.getMethod());
         environment.put(Rack.PATH_INFO, req.getPathInfo());
