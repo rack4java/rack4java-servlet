@@ -16,20 +16,18 @@ import javax.servlet.http.HttpServletResponse;
 import org.rack4java.Context;
 import org.rack4java.Rack;
 import org.rack4java.RackResponse;
-import org.rack4java.context.LiteralContext;
 import org.rack4java.context.MapContext;
 import org.rack4java.utils.ClassHelper;
 import org.rack4java.utils.FallbackContext;
 
 @SuppressWarnings("serial") 
 public class RackServlet extends HttpServlet {
-	private static final Context<Object> commonEnvironment = new LiteralContext<Object>(
-		    Rack.RACK_VERSION, Arrays.asList(0, 2),
-		    Rack.RACK_ERRORS, System.err,
-		    Rack.RACK_MULTITHREAD, true,
-		    Rack.RACK_MULTIPROCESS, true,
-		    Rack.RACK_RUN_ONCE, false
-		);
+	private static final Context<Object> commonEnvironment = new MapContext<Object>()
+	    .with(Rack.RACK_VERSION, Arrays.asList(0, 2))
+	    .with(Rack.RACK_ERRORS, System.err)
+	    .with(Rack.RACK_MULTITHREAD, true)
+	    .with(Rack.RACK_MULTIPROCESS, true)
+	    .with(Rack.RACK_RUN_ONCE, false);
 	
     private Rack rack;
 
@@ -70,7 +68,7 @@ public class RackServlet extends HttpServlet {
         for (Map.Entry<String, String> entry : response.getHeaders()) {
             resp.setHeader(entry.getKey(), entry.getValue());
         }
-        resp.getOutputStream().write(response.getBytes());
+        resp.getOutputStream().write(response.getBodyAsBytes());
     }
 
     private Context<Object> getEnvironment(HttpServletRequest req) throws IOException {
@@ -79,21 +77,21 @@ public class RackServlet extends HttpServlet {
     			commonEnvironment
     		);
         
-        environment.put(Rack.REQUEST_METHOD, req.getMethod());
-        environment.put(Rack.PATH_INFO, req.getPathInfo());
-        environment.put(Rack.QUERY_STRING, req.getQueryString());
-        environment.put(Rack.SERVER_NAME, req.getServerName());
-        environment.put(Rack.SERVER_PORT, req.getServerPort());
-        environment.put(Rack.SCRIPT_NAME, req.getServletPath());
+        environment.with(Rack.REQUEST_METHOD, req.getMethod());
+        environment.with(Rack.PATH_INFO, req.getPathInfo());
+        environment.with(Rack.QUERY_STRING, req.getQueryString());
+        environment.with(Rack.SERVER_NAME, req.getServerName());
+        environment.with(Rack.SERVER_PORT, req.getServerPort());
+        environment.with(Rack.SCRIPT_NAME, req.getServletPath());
         
         @SuppressWarnings("unchecked") Enumeration<String> headers = req.getHeaderNames();
         while (headers.hasMoreElements()) {
         	String header = headers.nextElement();
-        	environment.put(Rack.HTTP_ + header, req.getHeader(header));
+        	environment.with(Rack.HTTP_ + header, req.getHeader(header));
         }
         
-        environment.put(Rack.RACK_URL_SCHEME, req.getScheme());
-        environment.put(Rack.RACK_INPUT, req.getInputStream());
+        environment.with(Rack.RACK_URL_SCHEME, req.getScheme());
+        environment.with(Rack.RACK_INPUT, req.getInputStream());
         
         return environment;
     }
