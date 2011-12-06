@@ -1,9 +1,10 @@
-package org.rack4java.utils;
+package org.rack4java.servlet;
 
 import java.util.Iterator;
 import java.util.Map;
 
 import org.rack4java.Context;
+import org.rack4java.utils.CascadeIterator;
 
 public class FallbackContext<T> implements Context<T> {
 	private Context<T>[] list;

@@ -18,7 +18,6 @@ import org.rack4java.Rack;
 import org.rack4java.RackResponse;
 import org.rack4java.context.MapContext;
 import org.rack4java.utils.ClassHelper;
-import org.rack4java.utils.FallbackContext;
 
 @SuppressWarnings("serial") 
 public class RackServlet extends HttpServlet {
@@ -57,6 +56,8 @@ public class RackServlet extends HttpServlet {
     private void processCall(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             RackResponse response = rack.call(getEnvironment(req));
+            RackResponse.Type type = response.getResponseType();
+            // TODO - if type is file, hand it to the server directly, otherwise treat it as a stream
             writeResponse(resp, response);
         } catch (Exception e) {
             RackServlet.throwAsError(e);
