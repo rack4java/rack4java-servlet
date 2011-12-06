@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.rack4java.Context;
 import org.rack4java.Rack;
 import org.rack4java.RackResponse;
+import org.rack4java.context.FallbackContext;
 import org.rack4java.context.MapContext;
 import org.rack4java.utils.ClassHelper;
 
