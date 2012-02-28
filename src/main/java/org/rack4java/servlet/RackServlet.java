@@ -15,14 +15,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.rack4java.Context;
 import org.rack4java.Rack;
-import org.rack4java.RackResponse;
+import org.rack4java.RackBody;
 import org.rack4java.context.FallbackContext;
 import org.rack4java.context.MapContext;
 import org.rack4java.utils.ClassHelper;
 
 @SuppressWarnings("serial") 
 public class RackServlet extends HttpServlet {
-	private static final Context<Object> commonEnvironment = new MapContext<Object>()
+	private static final Context<String> commonEnvironment = new MapContext<String>()
 	    .with(Rack.RACK_VERSION, Arrays.asList(0, 2))
 	    .with(Rack.RACK_ERRORS, System.err)
 	    .with(Rack.RACK_MULTITHREAD, true)
@@ -56,26 +56,29 @@ public class RackServlet extends HttpServlet {
 
     private void processCall(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            RackResponse response = rack.call(getEnvironment(req));
-            RackResponse.Type type = response.getResponseType();
-            // TODO - if type is file, hand it to the server directly, otherwise treat it as a stream
-            writeResponse(resp, response);
+            Context<String> response = rack.call(getEnvironment(req));
+            resp.setStatus((Integer) response.getObject(Rack.RESPONSE_STATUS));
+            for (Map.Entry<String, Object> entry : response) {
+            	if (entry.getKey().startsWith(Rack.HTTP_)) {
+            		resp.setHeader(entry.getKey().substring(Rack.HTTP_.length()), (String)entry.getValue());
+            	}
+            }
+            RackBody body = (RackBody) response.getObject(Rack.RESPONSE_BODY);
+            if (null != body) {
+	            // TODO - if type is file, hand it to the server directly, otherwise treat it as a stream
+            	// RackBody.Type type = body.getType();
+            	for(byte[] bytes : body.getBodyAsBytes()) {
+                    resp.getOutputStream().write(bytes);
+            	}
+            }
         } catch (Exception e) {
             RackServlet.throwAsError(e);
         }
     }
 
-    private void writeResponse(HttpServletResponse resp, RackResponse response) throws IOException {
-        resp.setStatus(response.getStatus());
-        for (Map.Entry<String, String> entry : response.getHeaders()) {
-            resp.setHeader(entry.getKey(), entry.getValue());
-        }
-        resp.getOutputStream().write(response.getBodyAsBytes());
-    }
-
-    private Context<Object> getEnvironment(HttpServletRequest req) throws IOException {
-    	@SuppressWarnings("unchecked") Context<Object> environment = new FallbackContext<Object>(
-    			new MapContext<Object>(),
+    private Context<String> getEnvironment(HttpServletRequest req) throws IOException {
+    	@SuppressWarnings("unchecked") Context<String> environment = new FallbackContext<String>(
+    			new MapContext<String>(),
     			commonEnvironment
     		);
         
