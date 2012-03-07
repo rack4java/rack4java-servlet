@@ -57,13 +57,13 @@ public class RackServlet extends HttpServlet {
     private void processCall(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             Context<String> response = rack.call(getEnvironment(req));
-            resp.setStatus((Integer) response.getObject(Rack.RESPONSE_STATUS));
+            resp.setStatus((Integer) response.getObject(Rack.MESSAGE_STATUS));
             for (Map.Entry<String, Object> entry : response) {
             	if (entry.getKey().startsWith(Rack.HTTP_)) {
             		resp.setHeader(entry.getKey().substring(Rack.HTTP_.length()), (String)entry.getValue());
             	}
             }
-            RackBody body = (RackBody) response.getObject(Rack.RESPONSE_BODY);
+            RackBody body = (RackBody) response.getObject(Rack.MESSAGE_BODY);
             if (null != body) {
 	            // TODO - if type is file, hand it to the server directly, otherwise treat it as a stream
             	// RackBody.Type type = body.getType();
